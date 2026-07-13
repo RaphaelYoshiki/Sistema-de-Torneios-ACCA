@@ -1,0 +1,16 @@
+<%- include('partials/header', { user: null }) %>
+<div class="card auth-card">
+  <h1>Entrar</h1>
+  <% if (message) { %>
+    <div class="alert"><%= message %></div>
+  <% } %>
+  <form method="post" action="/login" class="form-grid">
+    <label>Email</label>
+    <input type="email" name="email" required />
+    <label>Senha</label>
+    <input type="password" name="password" required />
+    <button type="submit">Entrar</button>
+  </form>
+  <p class="form-note">Não tem conta? <a href="/register">Cadastre-se</a>.</p>
+</div>
+<%- include('partials/footer') %>

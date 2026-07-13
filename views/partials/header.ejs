@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Torneios ACCA</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="logo" href="/dashboard">Torneios ACCA</a>
+        <% if (user) { %>
+        <nav class="nav-links">
+          <a href="/dashboard">Torneios</a>
+          <a href="/profile">Perfil</a>
+          <a href="/logout">Fazer Logout</a>
+        </nav>
+        <% } %>
+      </div>
+    </header>
+    <main class="container">

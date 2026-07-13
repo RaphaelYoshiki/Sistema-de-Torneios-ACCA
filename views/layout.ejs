@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inscrições de Torneios de Judô</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="logo" href="/dashboard">Inscrições Judô</a>
+        <% if (user) { %>
+        <nav class="nav-links">
+          <a href="/dashboard">Torneios</a>
+          <a href="/profile">Perfil</a>
+          <a href="/logout">Sair</a>
+        </nav>
+        <% } %>
+      </div>
+    </header>
+    <main class="container">
+      <%- body %>
+    </main>
+    <footer class="site-footer">
+      <div class="container">Secure registration system for judo tournaments.</div>
+    </footer>
+    <script src="/js/main.js"></script>
+  </body>
+</html>

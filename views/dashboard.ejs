@@ -1,0 +1,16 @@
+<%- include('partials/header', { user: user }) %>
+<div class="page-header">
+  <h1>Torneios</h1>
+  <p>Veja torneios atuais e antigos. Clique em um torneio para ver seus detalhes e inscrever atletas.</p>
+</div>
+<div class="tourneys-grid">
+  <% tourneys.forEach((tourney) => { %>
+    <article class="tourney-card">
+      <h2><a href="/tourney/<%= tourney.id %>"><%= tourney.name %></a></h2>
+      <p><strong>Data:</strong> <%= tourney.date %></p>
+      <p><strong>Local:</strong> <%= tourney.location %></p>
+      <p><%= tourney.description %></p>
+    </article>
+  <% }); %>
+</div>
+<%- include('partials/footer') %>

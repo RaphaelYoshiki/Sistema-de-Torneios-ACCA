@@ -1,0 +1,257 @@
+<%- include('partials/header', { user: user }) %>
+<div class="page-header">
+  <div>
+    <h1><%= tourney.name %></h1>
+    <p><%= tourney.description %></p>
+  </div>
+  <div class="tourney-meta">
+    <p><strong>Data:</strong> <%= tourney.date %></p>
+    <p><strong>Local:</strong> <%= tourney.location %></p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="form-row">
+    <a class="button-secondary" href="/tourney/<%= tourney.id %>/pdf">Baixar PDF</a>
+    <a class="button-secondary" href="/tourney/<%= tourney.id %>/lutas">Lutas casadas</a>
+  </div>
+</div>
+
+<div class="registration-container">
+  <% ageCategories.forEach((ageCat) => { %>
+    <div class="age-category-section" data-age-key="<%= ageCat.key %>">
+      <button type="button" class="age-category-header">
+        <h2><%= ageCat.label %></h2>
+        <span class="toggle-indicator">▾</span>
+      </button>
+      <div class="age-category-body">
+      <% const isFestival = ageCat.key === 'Festival'; %>
+      <% if (isFestival) { %>
+        <% const regsForThisCombo = userRegistrations.filter(r => r.age_category === ageCat.key); %>
+        <div class="weight-category-subsection" data-weight-key="Festival">
+          <div class="subsection-header">
+            <h3>Geral</h3>
+          </div>
+          <div class="gender-columns">
+            <div class="gender-column festival">
+              <div class="column-header">
+                <h4>Festival</h4>
+                <button type="button" class="button-secondary bracket-button" data-age-key="<%= ageCat.key %>" data-weight-key="" data-gender="" data-display-type="list">Lista de Inscritos</button>
+              </div>
+              <div class="registered-list">
+                <% regsForThisCombo.forEach((reg) => { %>
+                  <div class="registration-item">
+                    <span><%= reg.name %></span>
+                    <form method="post" action="/tourney/<%= tourney.id %>/unregister" class="inline-form">
+                      <input type="hidden" name="registrationId" value="<%= reg.id %>" />
+                      <input type="hidden" name="athleteId" value="<%= reg.athlete_id %>" />
+                      <button type="submit" class="button-danger">Remover</button>
+                    </form>
+                  </div>
+                <% }); %>
+                <% if (regsForThisCombo.length === 0) { %>
+                  <p class="empty-msg">Nenhum atleta registrado</p>
+                <% } %>
+              </div>
+              <div class="available-athletes">
+                <% const festivalAvailable = athletes.filter(a => categoryMatches(a, parseDate(tourney.date), ageCat.key, null, a.gender) && !userRegistrations.some(r => r.athlete_id === a.id && r.age_category === ageCat.key)); %>
+                <% festivalAvailable.forEach((athlete) => { %>
+                  <form method="post" action="/tourney/<%= tourney.id %>/register" class="athlete-add-form" data-gender="festival">
+                    <input type="hidden" name="athleteId" value="<%= athlete.id %>" />
+                    <input type="hidden" name="ageCategory" value="<%= ageCat.key %>" />
+                    <input type="hidden" name="weightCategory" value="" />
+                    <button type="submit" class="athlete-add-btn">+ <%= athlete.name %></button>
+                  </form>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% } else if (ageCat.key === 'Senior') { %>
+        <% const seniorRegs = userRegistrations.filter(r => r.age_category === ageCat.key); %>
+        <% const seniorMaleRegs = seniorRegs.filter(r => normalizeGender(r.gender) === 'male'); %>
+        <% const seniorFemaleRegs = seniorRegs.filter(r => normalizeGender(r.gender) === 'female'); %>
+        <div class="weight-category-subsection" data-weight-key="Senior">
+          <div class="subsection-header">
+            <h3>Sênior</h3>
+          </div>
+          <div class="gender-columns">
+            <div class="gender-column male">
+              <div class="column-header">
+                <h4>Masculino</h4>
+                <button type="button" class="button-secondary bracket-button" data-age-key="<%= ageCat.key %>" data-weight-key="" data-gender="male" data-display-type="bracket">Chave Masculina</button>
+              </div>
+              <div class="registered-list">
+                <% seniorMaleRegs.forEach((reg) => { %>
+                  <div class="registration-item">
+                    <span><%= reg.name %></span>
+                    <form method="post" action="/tourney/<%= tourney.id %>/unregister" class="inline-form">
+                      <input type="hidden" name="registrationId" value="<%= reg.id %>" />
+                      <input type="hidden" name="athleteId" value="<%= reg.athlete_id %>" />
+                      <button type="submit" class="button-danger">Remover</button>
+                    </form>
+                  </div>
+                <% }); %>
+                <% if (seniorMaleRegs.length === 0) { %>
+                  <p class="empty-msg">Nenhum atleta registrado</p>
+                <% } %>
+              </div>
+              <div class="available-athletes">
+                <% const seniorMaleAvailable = athletes.filter(a => normalizeGender(a.gender) === 'male' && categoryMatches(a, parseDate(tourney.date), ageCat.key, null, 'male') && !userRegistrations.some(r => r.athlete_id === a.id && r.age_category === ageCat.key)); %>
+                <% seniorMaleAvailable.forEach((athlete) => { %>
+                  <form method="post" action="/tourney/<%= tourney.id %>/register" class="athlete-add-form" data-gender="male">
+                    <input type="hidden" name="athleteId" value="<%= athlete.id %>" />
+                    <input type="hidden" name="ageCategory" value="<%= ageCat.key %>" />
+                    <input type="hidden" name="weightCategory" value="" />
+                    <button type="submit" class="athlete-add-btn">+ <%= athlete.name %></button>
+                  </form>
+                <% }); %>
+              </div>
+            </div>
+            <div class="gender-column female">
+              <div class="column-header">
+                <h4>Feminino</h4>
+                <button type="button" class="button-secondary bracket-button" data-age-key="<%= ageCat.key %>" data-weight-key="" data-gender="female" data-display-type="bracket">Chave Feminina</button>
+              </div>
+              <div class="registered-list">
+                <% seniorFemaleRegs.forEach((reg) => { %>
+                  <div class="registration-item">
+                    <span><%= reg.name %></span>
+                    <form method="post" action="/tourney/<%= tourney.id %>/unregister" class="inline-form">
+                      <input type="hidden" name="registrationId" value="<%= reg.id %>" />
+                      <input type="hidden" name="athleteId" value="<%= reg.athlete_id %>" />
+                      <button type="submit" class="button-danger">Remover</button>
+                    </form>
+                  </div>
+                <% }); %>
+                <% if (seniorFemaleRegs.length === 0) { %>
+                  <p class="empty-msg">Nenhuma atleta registrada</p>
+                <% } %>
+              </div>
+              <div class="available-athletes">
+                <% const seniorFemaleAvailable = athletes.filter(a => normalizeGender(a.gender) === 'female' && categoryMatches(a, parseDate(tourney.date), ageCat.key, null, 'female') && !userRegistrations.some(r => r.athlete_id === a.id && r.age_category === ageCat.key)); %>
+                <% seniorFemaleAvailable.forEach((athlete) => { %>
+                  <form method="post" action="/tourney/<%= tourney.id %>/register" class="athlete-add-form" data-gender="female">
+                    <input type="hidden" name="athleteId" value="<%= athlete.id %>" />
+                    <input type="hidden" name="ageCategory" value="<%= ageCat.key %>" />
+                    <input type="hidden" name="weightCategory" value="" />
+                    <button type="submit" class="athlete-add-btn">+ <%= athlete.name %></button>
+                  </form>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% } else { %>
+        <% const classesForAge = weightCategories.filter(w => w.ranges && (w.ranges.male?.[ageCat.key] || w.ranges.female?.[ageCat.key])); %>
+        <% classesForAge.forEach((weightCat) => { %>
+          <% const regsForThisCombo = userRegistrations.filter(r => r.age_category === ageCat.key && r.weight_category === weightCat.key); %>
+          <% const maleRegs = regsForThisCombo.filter(r => normalizeGender(r.gender) === 'male'); %>
+          <% const femaleRegs = regsForThisCombo.filter(r => normalizeGender(r.gender) === 'female'); %>
+          <div class="weight-category-subsection" data-weight-key="<%= weightCat.key %>">
+            <div class="subsection-header">
+              <h3><%= weightCat.label %></h3>
+            </div>
+            <div class="gender-columns">
+              <div class="gender-column male">
+                <div class="column-header">
+                  <h4>Masculino</h4>
+                  <button type="button" class="button-secondary bracket-button" data-age-key="<%= ageCat.key %>" data-weight-key="<%= weightCat.key %>" data-gender="male" data-display-type="bracket">Chave Masculina</button>
+                </div>
+                <div class="registered-list">
+                  <% maleRegs.forEach((reg) => { %>
+                    <div class="registration-item">
+                      <span><%= reg.name %></span>
+                      <form method="post" action="/tourney/<%= tourney.id %>/unregister" class="inline-form">
+                        <input type="hidden" name="registrationId" value="<%= reg.id %>" />
+                        <input type="hidden" name="athleteId" value="<%= reg.athlete_id %>" />
+                        <button type="submit" class="button-danger">Remover</button>
+                      </form>
+                    </div>
+                  <% }); %>
+                  <% if (maleRegs.length === 0) { %>
+                    <p class="empty-msg">Nenhum atleta registrado</p>
+                  <% } %>
+                </div>
+                <div class="available-athletes">
+                  <% const maleAvailable = athletes.filter(a => normalizeGender(a.gender) === 'male' && categoryMatches(a, parseDate(tourney.date), ageCat.key, weightCat.key, 'male') && !userRegistrations.some(r => r.athlete_id === a.id && r.age_category === ageCat.key && r.weight_category === weightCat.key)); %>
+                  <% maleAvailable.forEach((athlete) => { %>
+                    <form method="post" action="/tourney/<%= tourney.id %>/register" class="athlete-add-form" data-gender="<%= normalizeGender(athlete.gender) %>">
+                      <input type="hidden" name="athleteId" value="<%= athlete.id %>" />
+                      <input type="hidden" name="ageCategory" value="<%= ageCat.key %>" />
+                      <input type="hidden" name="weightCategory" value="<%= weightCat.key %>" />
+                      <button type="submit" class="athlete-add-btn">+ <%= athlete.name %></button>
+                    </form>
+                  <% }); %>
+                </div>
+              </div>
+              <div class="gender-column female">
+                <div class="column-header">
+                  <h4>Feminino</h4>
+                  <button type="button" class="button-secondary bracket-button" data-age-key="<%= ageCat.key %>" data-weight-key="<%= weightCat.key %>" data-gender="female" data-display-type="bracket">Chave Feminina</button>
+                </div>
+                <div class="registered-list">
+                  <% femaleRegs.forEach((reg) => { %>
+                    <div class="registration-item">
+                      <span><%= reg.name %></span>
+                      <form method="post" action="/tourney/<%= tourney.id %>/unregister" class="inline-form">
+                        <input type="hidden" name="registrationId" value="<%= reg.id %>" />
+                        <input type="hidden" name="athleteId" value="<%= reg.athlete_id %>" />
+                        <button type="submit" class="button-danger">Remover</button>
+                      </form>
+                    </div>
+                  <% }); %>
+                  <% if (femaleRegs.length === 0) { %>
+                    <p class="empty-msg">Nenhuma atleta registrada</p>
+                  <% } %>
+                </div>
+                <div class="available-athletes">
+                  <% const femaleAvailable = athletes.filter(a => normalizeGender(a.gender) === 'female' && categoryMatches(a, parseDate(tourney.date), ageCat.key, weightCat.key, 'female') && !userRegistrations.some(r => r.athlete_id === a.id && r.age_category === ageCat.key && r.weight_category === weightCat.key)); %>
+                  <% femaleAvailable.forEach((athlete) => { %>
+                    <form method="post" action="/tourney/<%= tourney.id %>/register" class="athlete-add-form" data-gender="<%= normalizeGender(athlete.gender) %>">
+                      <input type="hidden" name="athleteId" value="<%= athlete.id %>" />
+                      <input type="hidden" name="ageCategory" value="<%= ageCat.key %>" />
+                      <input type="hidden" name="weightCategory" value="<%= weightCat.key %>" />
+                      <button type="submit" class="athlete-add-btn">+ <%= athlete.name %></button>
+                    </form>
+                  <% }); %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+      </div>
+    </div>
+  <% }); %>
+</div>
+
+<div id="bracket-modal" class="bracket-modal hidden">
+  <div class="bracket-overlay"></div>
+  <div class="bracket-content">
+    <div class="bracket-header">
+      <h2 id="bracket-title"></h2>
+      <div class="bracket-actions">
+        <button type="button" class="button-secondary" id="bracket-print-btn">Imprimir</button>
+        <button type="button" class="button-secondary" id="bracket-close-btn">Fechar</button>
+      </div>
+    </div>
+    <div id="bracket-body" class="bracket-body"></div>
+  </div>
+</div>
+
+<script id="tourney-bracket-data" type="application/json"><%- JSON.stringify(allRegistrations || []) %></script>
+<script>
+  window.tourneyBracketData = JSON.parse(document.getElementById('tourney-bracket-data').textContent || '[]');
+</script>
+<script>
+  document.querySelectorAll('.age-category-header').forEach((button) => {
+    button.addEventListener('click', () => {
+      const section = button.closest('.age-category-section');
+      section.classList.toggle('collapsed');
+    });
+  });
+</script>
+<script src="/js/tourney.js"></script>
+<%- include('partials/footer') %>
+

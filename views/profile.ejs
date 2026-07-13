@@ -1,0 +1,75 @@
+<%- include('partials/header', { user: user }) %>
+<div class="page-header profile-header">
+  <div>
+    <h1>Seu Perfil</h1>
+    <p>Gerencie seus dados e lista de atletas.</p>
+  </div>
+</div>
+<div class="card profile-card">
+  <% if (message) { %>
+    <div class="alert"><%= message %></div>
+  <% } %>
+  <form method="post" action="/profile" class="form-grid profile-form">
+    <label>Nome</label>
+    <input type="text" name="name" value="<%= user.name || '' %>" required />
+    <label>Academia</label>
+    <input type="text" name="academy" value="<%= user.academy || '' %>" />
+    <button type="submit">Salvar</button>
+  </form>
+</div>
+<div class="card athlete-card">
+  <h2>Seus atletas</h2>
+  <button class="button-secondary" id="show-athlete-form">Adicionar Atleta</button>
+  <div class="athlete-form hidden" id="athlete-form">
+    <form method="post" action="/athletes/save" class="form-grid">
+      <input type="hidden" name="id" id="athlete-id" />
+      <label>Nome do atleta</label>
+      <input type="text" name="name" id="athlete-name" required />
+      <label>Gênero</label>
+      <select name="gender" id="athlete-gender" required>
+        <option value="">Selecione</option>
+        <option value="masculino">Masculino</option>
+        <option value="feminino">Feminino</option>
+      </select>
+      <label>Data de Nascimento</label>
+      <input type="date" name="birthdate" id="athlete-birthdate" required />
+      <label>Peso (kg)</label>
+      <input type="number" name="weight" id="athlete-weight" step="0.1" required />
+      <label>Faixa</label>
+      <select name="belt" id="athlete-belt" required>
+        <option value="branca">Branca</option>
+        <option value="cinza">Cinza</option>
+        <option value="azul">Azul</option>
+        <option value="amarela">Amarela</option>
+        <option value="laranja">Laranja</option>
+        <option value="verde">Verde</option>
+        <option value="roxa">Roxa</option>
+        <option value="marrom">Marrom</option>
+        <option value="preta">Preta</option>
+      </select>
+      <button type="submit">Salvar Dados de Atleta</button>
+      <button type="button" class="button-secondary" id="cancel-athlete-form">Cancelar</button>
+    </form>
+  </div>
+  <div class="athlete-list">
+    <% if (athletes.length === 0) { %>
+      <p>Nenhum atleta registrado</p>
+    <% } %>
+    <% athletes.forEach((athlete) => { %>
+      <div class="athlete-item">
+        <div>
+          <strong><%= athlete.name %></strong>
+          <p><%= athlete.gender.charAt(0).toUpperCase() + athlete.gender.slice(1) %> • Faixa <%= athlete.belt %> • <%= athlete.birthdate %> • <%= athlete.weight %> kg</p>
+        </div>
+        <div class="athlete-actions">
+          <button class="button-secondary edit-athlete" data-athlete='<%= JSON.stringify(athlete).replace(/'/g, '&#39;') %>'>Editar</button>
+          <form method="post" action="/athletes/delete" class="inline-form">
+            <input type="hidden" name="id" value="<%= athlete.id %>" />
+            <button type="submit" class="button-danger">Remover</button>
+          </form>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+</div>
+<%- include('partials/footer') %>

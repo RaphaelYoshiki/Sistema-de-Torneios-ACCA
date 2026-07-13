@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: acca-projeto-inscricoes
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /var/data/data.sqlite
+    disk:
+      name: acca-data
+      mountPath: /var/data
+      sizeGB: 1

@@ -1,0 +1,29 @@
+<%- include('partials/header', { user: user }) %>
+<div class="page-header">
+  <div>
+    <h1>Painel Administrativo</h1>
+    <p>Crie, edite ou veja todos os torneios.</p>
+  </div>
+  <a class="button-primary" href="/admin/tourney/new">Criar novo torneio</a>
+</div>
+<div class="card">
+  <h2>Todos os torneios</h2>
+  <% if (tourneys.length === 0) { %>
+    <p>Nenhum torneio criado ainda.</p>
+  <% } else { %>
+    <div class="tourneys-list">
+      <% tourneys.forEach((tourney) => { %>
+        <div class="tourney-row">
+          <div>
+            <strong><%= tourney.name %></strong>
+            <p><%= tourney.date %> • <%= tourney.location %></p>
+          </div>
+          <div class="tourney-actions">
+            <a class="button-secondary" href="/admin/tourney/<%= tourney.id %>/edit">Editar</a>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,89 @@
+<%- include('partials/header', { user: user }) %>
+<div class="page-header">
+  <div>
+    <a class="button-secondary back-button" href="/tourney/<%= tourney.id %>">← Voltar ao torneio</a>
+    <h1>Lutas casadas — <%= tourney.name %></h1>
+    <p>Casar adversários para o torneio. As lutas ficam persistidas e visíveis para todos os usuários.</p>
+  </div>
+  <div class="tourney-meta">
+    <p><strong>Data:</strong> <%= tourney.date %></p>
+    <p><strong>Local:</strong> <%= tourney.location %></p>
+  </div>
+</div>
+
+<div class="card">
+  <form method="post" action="/tourney/<%= tourney.id %>/lutas" id="pair-form" class="form-grid">
+    <div>
+      <label>Atleta A</label>
+      <select name="athleteAId" id="athleteA">
+        <option value="">Selecione</option>
+        <% athletes.forEach((a) => { %>
+          <option value="<%= a.id %>"><%= a.name %> — <%= a.gender %></option>
+        <% }); %>
+      </select>
+    </div>
+    <div>
+      <label>Atleta B</label>
+      <select name="athleteBId" id="athleteB">
+        <option value="">Selecione</option>
+        <% athletes.forEach((a) => { %>
+          <option value="<%= a.id %>"><%= a.name %> — <%= a.gender %></option>
+        <% }); %>
+      </select>
+    </div>
+    <div>
+      <label>&nbsp;</label>
+      <button type="submit" class="button-primary">Casar luta</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="form-row">
+    <h2>Lutas casadas</h2>
+    <button type="button" class="button-secondary" id="print-fights-btn">Imprimir lutas</button>
+  </div>
+  <% if (fights.length === 0) { %>
+    <p>Nenhuma luta casada ainda.</p>
+  <% } else { %>
+    <div class="fights-list">
+      <% fights.forEach((f) => { %>
+        <div class="fight-item">
+          <% if (f.athleteA && f.athleteB) { %>
+            <span><%= f.athleteA %> vs <%= f.athleteB %></span>
+          <% } else if (f.athleteA) { %>
+            <span><%= f.athleteA %> — <em>Aguardando adversário</em></span>
+          <% } else if (f.athleteB) { %>
+            <span><em>Aguardando adversário</em> — <%= f.athleteB %></span>
+          <% } else { %>
+            <span><em>Luta vazia</em></span>
+          <% } %>
+
+          <% if (!f.athleteA || !f.athleteB) { %>
+            <form method="post" action="/tourney/<%= tourney.id %>/lutas/<%= f.id %>/add" class="inline-form add-opponent-form">
+              <input type="hidden" name="fightId" value="<%= f.id %>" />
+              <select name="opponentId" required>
+                <option value="">Selecione um atleta</option>
+                <% athletes.forEach((a) => {
+                     // don't include the present athlete in opponent list
+                     if ((f.athleteA && a.name === f.athleteA) || (f.athleteB && a.name === f.athleteB)) return;
+                %>
+                  <option value="<%= a.id %>"><%= a.name %> — <%= a.gender %></option>
+                <% }); %>
+              </select>
+              <button type="submit" class="button-primary">Adicionar adversário</button>
+            </form>
+          <% } %>
+
+          <form method="post" action="/tourney/<%= tourney.id %>/lutas/delete" class="inline-form">
+            <input type="hidden" name="fightId" value="<%= f.id %>" />
+            <button type="submit" class="button-danger">Remover</button>
+          </form>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</div>
+
+<script src="/js/tourney-lutas.js"></script>
+<%- include('partials/footer') %>
