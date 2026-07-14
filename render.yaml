@@ -2,16 +2,18 @@ services:
   - type: web
     name: acca-projeto-inscricoes
     runtime: node
-    plan: starter
+    plan: free # Mudamos para o plano gratuito
     buildCommand: npm install
     startCommand: npm start
     autoDeployTrigger: commit
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DB_PATH
-        value: /var/data/data.sqlite
-    disk:
-      name: acca-data
-      mountPath: /var/data
-      sizeGB: 1
+      # O sync: false avisa ao Render que essas variáveis existem, 
+      # mas que os valores reais serão preenchidos manualmente no painel por segurança.
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
