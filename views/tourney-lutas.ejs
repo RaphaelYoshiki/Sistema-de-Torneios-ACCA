@@ -65,8 +65,7 @@
               <select name="opponentId" required>
                 <option value="">Selecione um atleta</option>
                 <% athletes.forEach((a) => {
-                     // don't include the present athlete in opponent list
-                     if ((f.athleteA && a.name === f.athleteA) || (f.athleteB && a.name === f.athleteB)) return;
+                     if ((f.athlete_a_id && Number(a.id) === Number(f.athlete_a_id)) || (f.athlete_b_id && Number(a.id) === Number(f.athlete_b_id))) return;
                 %>
                   <option value="<%= a.id %>"><%= a.name %> — <%= a.gender %></option>
                 <% }); %>

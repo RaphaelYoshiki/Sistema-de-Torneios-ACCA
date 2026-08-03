@@ -299,6 +299,30 @@ const checkAdmin = (req, res, next) => {
   next();
 };
 
+const getAccessibleAthletes = async (user) => {
+  if (user && user.isAdmin) {
+    return all('SELECT * FROM athletes ORDER BY name');
+  }
+
+  return all('SELECT * FROM athletes WHERE user_id = ? ORDER BY name', [user.id]);
+};
+
+const getAthleteForUser = async (athleteId, user) => {
+  if (user && user.isAdmin) {
+    return get('SELECT * FROM athletes WHERE id = ?', [athleteId]);
+  }
+
+  return get('SELECT * FROM athletes WHERE id = ? AND user_id = ?', [athleteId, user.id]);
+};
+
+const getFightForUser = async (fightId, tourneyId, user) => {
+  if (user && user.isAdmin) {
+    return get('SELECT * FROM fights WHERE id = ? AND tourney_id = ?', [fightId, tourneyId]);
+  }
+
+  return get('SELECT * FROM fights WHERE id = ? AND tourney_id = ? AND created_by = ?', [fightId, tourneyId, user.id]);
+};
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
@@ -608,7 +632,7 @@ app.get('/tourney/:id/lutas', checkAuth, async (req, res, next) => {
     const tourney = await get('SELECT * FROM tourneys WHERE id = ?', [tourneyId]);
     if (!tourney) return res.status(404).render('404', { user: req.user });
 
-    const athletes = await all('SELECT * FROM athletes ORDER BY name');
+    const athletes = await getAccessibleAthletes(req.user);
     const fights = await all(
       `SELECT f.id, f.athlete_a_id, f.athlete_b_id, a1.name AS athleteA, a2.name AS athleteB, f.created_at
        FROM fights f
@@ -642,14 +666,14 @@ app.post('/tourney/:id/lutas', checkAuth, async (req, res, next) => {
   try {
     // Validate provided athlete ids (if present)
     if (athleteAId) {
-      const a1 = await get('SELECT id FROM athletes WHERE id = ?', [athleteAId]);
+      const a1 = await getAthleteForUser(athleteAId, req.user);
       if (!a1) {
         if (req.headers.accept && req.headers.accept.includes('application/json')) return res.json({ success: false });
         return res.redirect(`/tourney/${tourneyId}/lutas`);
       }
     }
     if (athleteBId) {
-      const a2 = await get('SELECT id FROM athletes WHERE id = ?', [athleteBId]);
+      const a2 = await getAthleteForUser(athleteBId, req.user);
       if (!a2) {
         if (req.headers.accept && req.headers.accept.includes('application/json')) return res.json({ success: false });
         return res.redirect(`/tourney/${tourneyId}/lutas`);
@@ -678,6 +702,12 @@ app.post('/tourney/:id/lutas/delete', checkAuth, async (req, res, next) => {
     return res.redirect(`/tourney/${tourneyId}/lutas`);
   }
   try {
+    const fight = await getFightForUser(fightId, tourneyId, req.user);
+    if (!fight) {
+      if (req.headers.accept && req.headers.accept.includes('application/json')) return res.json({ success: false });
+      return res.redirect(`/tourney/${tourneyId}/lutas`);
+    }
+
     await run('DELETE FROM fights WHERE id = ? AND tourney_id = ?', [fightId, tourneyId]);
     if (req.headers.accept && req.headers.accept.includes('application/json')) return res.json({ success: true });
     res.redirect(`/tourney/${tourneyId}/lutas`);
@@ -696,12 +726,12 @@ app.post('/tourney/:id/lutas/:fightId/add', checkAuth, async (req, res, next) =>
     return res.redirect(`/tourney/${tourneyId}/lutas`);
   }
   try {
-    const fight = await get('SELECT * FROM fights WHERE id = ? AND tourney_id = ?', [fightId, tourneyId]);
+    const fight = await getFightForUser(fightId, tourneyId, req.user);
     if (!fight) {
       if (req.headers.accept && req.headers.accept.includes('application/json')) return res.json({ success: false });
       return res.redirect(`/tourney/${tourneyId}/lutas`);
     }
-    const opponent = await get('SELECT id FROM athletes WHERE id = ?', [opponentId]);
+    const opponent = await getAthleteForUser(opponentId, req.user);
     if (!opponent) {
       if (req.headers.accept && req.headers.accept.includes('application/json')) return res.json({ success: false });
       return res.redirect(`/tourney/${tourneyId}/lutas`);
