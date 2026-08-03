@@ -1,6 +1,6 @@
 node_modules/
 data.sqlite
-.specstory
-.vscode
+.specstory/
+.vscode/
 .env
 render_env_values.txt
