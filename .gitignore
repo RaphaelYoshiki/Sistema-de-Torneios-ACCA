@@ -1,6 +1,6 @@
 node_modules/
 data.sqlite
-.specstory/
-.vscode/
 .env
-render_env_values.txt
+npm-debug.log
+chave_sistema_acca
+chave_sistema_acca.pub
