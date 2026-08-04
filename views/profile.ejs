@@ -20,36 +20,44 @@
 <div class="card athlete-card">
   <h2>Seus atletas</h2>
   <button class="button-secondary" id="show-athlete-form">Adicionar Atleta</button>
-  <div class="athlete-form hidden" id="athlete-form">
-    <form method="post" action="/athletes/save" class="form-grid">
-      <input type="hidden" name="id" id="athlete-id" />
-      <label>Nome do atleta</label>
-      <input type="text" name="name" id="athlete-name" required />
-      <label>Gênero</label>
-      <select name="gender" id="athlete-gender" required>
-        <option value="">Selecione</option>
-        <option value="masculino">Masculino</option>
-        <option value="feminino">Feminino</option>
-      </select>
-      <label>Data de Nascimento</label>
-      <input type="date" name="birthdate" id="athlete-birthdate" required />
-      <label>Peso (kg)</label>
-      <input type="number" name="weight" id="athlete-weight" step="0.1" required />
-      <label>Faixa</label>
-      <select name="belt" id="athlete-belt" required>
-        <option value="branca">Branca</option>
-        <option value="cinza">Cinza</option>
-        <option value="azul">Azul</option>
-        <option value="amarela">Amarela</option>
-        <option value="laranja">Laranja</option>
-        <option value="verde">Verde</option>
-        <option value="roxa">Roxa</option>
-        <option value="marrom">Marrom</option>
-        <option value="preta">Preta</option>
-      </select>
-      <button type="submit">Salvar Dados de Atleta</button>
-      <button type="button" class="button-secondary" id="cancel-athlete-form">Cancelar</button>
-    </form>
+  <div class="athlete-overlay hidden" id="athlete-form-overlay" aria-hidden="true">
+    <div class="athlete-overlay-panel" role="dialog" aria-modal="true" aria-labelledby="athlete-form-title">
+      <div class="athlete-overlay-header">
+        <h3 id="athlete-form-title">Dados do atleta</h3>
+        <button type="button" class="button-secondary athlete-overlay-close" id="close-athlete-form">Fechar</button>
+      </div>
+      <form method="post" action="/athletes/save" class="form-grid" id="athlete-form">
+        <input type="hidden" name="id" id="athlete-id" />
+        <label>Nome do atleta</label>
+        <input type="text" name="name" id="athlete-name" required />
+        <label>Gênero</label>
+        <select name="gender" id="athlete-gender" required>
+          <option value="">Selecione</option>
+          <option value="masculino">Masculino</option>
+          <option value="feminino">Feminino</option>
+        </select>
+        <label>Data de Nascimento</label>
+        <input type="date" name="birthdate" id="athlete-birthdate" required />
+        <label>Peso (kg)</label>
+        <input type="number" name="weight" id="athlete-weight" step="0.1" required />
+        <label>Faixa</label>
+        <select name="belt" id="athlete-belt" required>
+          <option value="branca">Branca</option>
+          <option value="cinza">Cinza</option>
+          <option value="azul">Azul</option>
+          <option value="amarela">Amarela</option>
+          <option value="laranja">Laranja</option>
+          <option value="verde">Verde</option>
+          <option value="roxa">Roxa</option>
+          <option value="marrom">Marrom</option>
+          <option value="preta">Preta</option>
+        </select>
+        <div class="athlete-form-actions">
+          <button type="submit">Salvar Dados de Atleta</button>
+          <button type="button" class="button-secondary" id="cancel-athlete-form">Cancelar</button>
+        </div>
+      </form>
+    </div>
   </div>
   <div class="athlete-list">
     <% if (athletes.length === 0) { %>
