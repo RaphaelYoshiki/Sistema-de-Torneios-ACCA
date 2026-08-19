@@ -541,6 +541,82 @@ button[type='submit'] {
   gap: 8px;
 }
 
+.tourney-terms-notice {
+  margin: 0 0 18px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.terms-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.terms-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.terms-modal.hidden {
+  display: none;
+}
+
+.terms-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.terms-content {
+  position: relative;
+  width: min(760px, calc(100% - 32px));
+  max-height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 24px;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.2);
+  z-index: 1;
+}
+
+.terms-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.terms-header h2 {
+  margin: 0;
+}
+
+.terms-body p {
+  margin: 18px 0 8px;
+}
+
+.terms-body p:first-child {
+  margin-top: 0;
+}
+
+.terms-body ul {
+  margin: 0 0 12px;
+  padding-left: 24px;
+}
+
+.terms-body li + li {
+  margin-top: 8px;
+}
+
 @media (max-width: 768px) {
   .gender-columns {
     grid-template-columns: 1fr;
