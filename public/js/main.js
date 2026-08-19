@@ -1,4 +1,31 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const termsModal = document.getElementById('tourney-terms-modal');
+  const openTerms = document.getElementById('open-tourney-terms');
+  const closeTerms = document.getElementById('close-tourney-terms');
+
+  const hideTerms = () => {
+    if (!termsModal) return;
+    termsModal.classList.add('hidden');
+    termsModal.setAttribute('aria-hidden', 'true');
+  };
+
+  const showTerms = () => {
+    if (!termsModal) return;
+    termsModal.classList.remove('hidden');
+    termsModal.setAttribute('aria-hidden', 'false');
+    closeTerms?.focus();
+  };
+
+  openTerms?.addEventListener('click', showTerms);
+  closeTerms?.addEventListener('click', hideTerms);
+  termsModal?.querySelector('[data-close-tourney-terms]')?.addEventListener('click', hideTerms);
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && termsModal && !termsModal.classList.contains('hidden')) {
+      hideTerms();
+    }
+  });
+
   const showForm = document.getElementById('show-athlete-form');
   const closeForm = document.getElementById('close-athlete-form');
   const cancelForm = document.getElementById('cancel-athlete-form');
