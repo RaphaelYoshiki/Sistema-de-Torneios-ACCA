@@ -839,13 +839,13 @@ app.get('/tourney/:id/pdf', checkAuth, async (req, res, next) => {
     }
 
     const registrations = await all(
-      'SELECT a.name, a.gender, r.age_category, r.weight_category FROM registrations r JOIN athletes a ON r.athlete_id = a.id WHERE r.tourney_id = ? ORDER BY r.age_category, r.weight_category, a.name',
-      [tourneyId]
+      'SELECT a.name, a.gender, r.age_category, r.weight_category FROM registrations r JOIN athletes a ON r.athlete_id = a.id WHERE r.tourney_id = ? AND a.user_id = ? ORDER BY r.age_category, r.weight_category, a.name',
+      [tourneyId, req.user.id]
     );
 
     const doc = new PDFDocument({ size: 'A4', margin: 40 });
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${tourney.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_registrations.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${tourney.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_inscritos.pdf"`);
     doc.pipe(res);
 
     doc.fontSize(18).text(`${tourney.name}`, { underline: true });
