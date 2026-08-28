@@ -4,3 +4,4 @@ data.sqlite
 .vscode/
 .env
 render_env_values.txt
+tools/
