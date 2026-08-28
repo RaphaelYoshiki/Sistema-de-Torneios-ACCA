@@ -216,11 +216,8 @@ const computeAge = (birthdate, refDate) => {
     ref = parseDate(refDate);
   }
   if (!ref) return null;
-  let age = ref.getFullYear() - birth.getFullYear();
-  const monthDiff = ref.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && ref.getDate() < birth.getDate())) {
-    age -= 1;
-  }
+  // Age is calculated only by the difference in years, ignoring months and days
+  const age = ref.getFullYear() - birth.getFullYear();
   return age;
 };
 
