@@ -465,9 +465,21 @@ button[type='submit'] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
+  background: var(--success);
+  color: white;
   border: 1px solid var(--border);
   border-radius: 8px;
+}
+
+.registered-list .registration-item span {
+  color: white;
+  font-weight: 500;
+}
+
+.registered-list .registration-item .button-danger {
+  background: var(--danger);
+  padding: 6px 10px;
+  font-size: 0.85rem;
 }
 
 .empty-msg {
@@ -490,7 +502,7 @@ button[type='submit'] {
   display: block;
   width: 100%;
   padding: 10px;
-  background: var(--success);
+  background: var(--primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -503,7 +515,7 @@ button[type='submit'] {
 }
 
 .athlete-add-btn:hover {
-  background: #26a035;
+  background: var(--secondary);
 }
 
 .tourneys-list {
@@ -643,7 +655,7 @@ button[type='submit'] {
 
 .bracket-content {
   position: relative;
-  width: min(960px, calc(100% - 32px));
+  width: min(1400px, calc(100% - 32px)); /* Aumentado de 960px para 1400px */
   max-height: calc(100vh - 56px);
   overflow: auto;
   background: white;
@@ -836,12 +848,15 @@ button[type='submit'] {
 }
 
 .match-box {
-  border: 1px solid #000000 !important;
-  border-radius: 4px;
-  background: #ffffff !important;
-  width: 13rem; /* Aprox 208px */
+  border: none !important;
+  background: transparent !important;
+  width: 13rem;
+  height: 4.8rem;
   box-sizing: border-box;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .athlete-slot {
@@ -851,10 +866,69 @@ button[type='submit'] {
   flex-direction: column;
   justify-content: center;
   box-sizing: border-box;
+  border: 1px solid #000000 !important;
+  background: #ffffff !important;
+  border-radius: 4px;
 }
 
+/* Conecta os dois retângulos removendo os cantos arredondados no meio */
 .athlete-slot:first-child {
-  border-bottom: 1px solid #000000 !important;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: none !important;
+}
+.athlete-slot:last-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* Lógica que omite visualmente a parte da caixa sem atleta */
+.athlete-slot.empty-slot {
+  display: none !important; 
+}
+
+/* Corrige o border-radius e a linha inferior do lutador que sobrou no bye */
+.match-box.has-bye .athlete-slot {
+  border: 1px solid #000000 !important;
+  border-radius: 4px !important;
+}
+
+/* Esconde as lutas artificiais de centralização, mas mantém suas linhas verticais da árvore */
+.dummy-match-box,
+.pass-through-box {
+  visibility: hidden !important;
+}
+
+.dummy-match-wrapper .bracket-line-in,
+.dummy-match-wrapper .bracket-line-out {
+  visibility: hidden !important;
+}
+
+/* LINHAS CONECTORAS */
+.bracket-line-through {
+  position: absolute;
+  left: -1.5rem; /* Começa antes para cobrir a área da linha de entrada */
+  top: 50%;
+  width: 16rem; /* Se expande por toda a largura da coluna perfeitamente */
+  height: 1px;
+  border-top: 1px solid #000000 !important;
+  z-index: 1;
+}
+
+/* Base geométrica calculada usando variáveis para eliminar linhas fantasmas */
+.round-0 { --round-height: 6rem; }
+.round-1 { --round-height: 12rem; }
+.round-2 { --round-height: 24rem; }
+.round-3 { --round-height: 48rem; }
+.round-4 { --round-height: 96rem; }
+
+.bracket-line-vertical {
+  position: absolute;
+  left: 14.5rem;
+  border-right: 1px solid #000000 !important;
+  z-index: 1;
+  top: 50%;
+  height: var(--round-height);
 }
 
 .entry-name {
