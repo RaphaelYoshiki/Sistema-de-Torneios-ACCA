@@ -141,28 +141,67 @@ const nextPowerOfTwo = (value) => {
 };
 
 const buildBracketHtml = (matches, title) => {
-  if (!matches.length) {
-    return `<div class="bracket-empty">Nenhum atleta inscrito.</div>`;
-  }
+  if (!matches.length) return `<div class="bracket-empty">Nenhum atleta inscrito.</div>`;
 
   const participantCount = matches.reduce((sum, match) => sum + (match.left ? 1 : 0) + (match.right ? 1 : 0), 0);
   const bracketSize = nextPowerOfTwo(Math.max(participantCount, 2));
+  const round0Slots = bracketSize / 2;
+  const dummiesTotal = round0Slots - matches.length;
+  const dummiesTop = Math.ceil(dummiesTotal / 2); 
+  const dummiesBottom = Math.floor(dummiesTotal / 2);
+
+  const paddedMatches = [];
+  for (let i = 0; i < dummiesTop; i++) paddedMatches.push({ id: `dummy-t-${i}`, isDummy: true, left: null, right: null });
+  matches.forEach((match, i) => paddedMatches.push({ id: `r0-m${i}`, isDummy: false, left: match.left, right: match.right }));
+  for (let i = 0; i < dummiesBottom; i++) paddedMatches.push({ id: `dummy-b-${i}`, isDummy: true, left: null, right: null });
+
   const roundCount = Math.max(1, Math.log2(bracketSize));
   const rounds = Array.from({ length: roundCount }, () => []);
-
-  rounds[0] = matches.map((match, index) => ({
-    id: `round0-match${index}`,
-    left: match.left,
-    right: match.right,
-  }));
+  
+  // Calcula o centro absoluto (Y) de cada match
+  rounds[0] = paddedMatches.map((m, i) => {
+    const H = 6; // Base height da Round 0 em rem
+    const flexCenter = i * H + H / 2;
+    return {
+      ...m,
+      isPassThrough: false,
+      flexCenter: flexCenter,
+      absoluteY: flexCenter,
+      offsetY: 0
+    };
+  });
 
   for (let round = 1; round < roundCount; round += 1) {
     const previous = rounds[round - 1];
+    const H = 6 * Math.pow(2, round);
+    
     for (let i = 0; i < Math.ceil(previous.length / 2); i += 1) {
+      const leftMatch = previous[i * 2];
+      const rightMatch = previous[i * 2 + 1];
+      
+      const isDummy = leftMatch?.isDummy && rightMatch?.isDummy;
+      const isPassThrough = (leftMatch?.isDummy && !rightMatch?.isDummy) || (!leftMatch?.isDummy && rightMatch?.isDummy);
+      
+      const flexCenter = i * H + H / 2;
+      let absoluteY = flexCenter;
+      
+      if (isDummy) {
+        absoluteY = flexCenter;
+      } else if (isPassThrough) {
+        absoluteY = leftMatch?.isDummy ? rightMatch.absoluteY : leftMatch.absoluteY;
+      } else {
+        absoluteY = flexCenter; 
+      }
+      
       rounds[round].push({
         id: `round${round}-match${i}`,
+        isDummy: isDummy,
+        isPassThrough: isPassThrough,
         left: null,
         right: null,
+        flexCenter: flexCenter,
+        absoluteY: absoluteY,
+        offsetY: absoluteY - flexCenter // Diferença matemática para anular curvas
       });
     }
   }
@@ -170,36 +209,57 @@ const buildBracketHtml = (matches, title) => {
   let html = `<div class="bracket-tree-wrapper"><div class="bracket-tree">`;
 
   rounds.forEach((roundMatches, roundIndex) => {
-    // Adicionamos uma classe identificando a rodada atual para calcular o espaçamento no CSS
     html += `<div class="round-column round-${roundIndex}">`;
     
     roundMatches.forEach((match, matchIndex) => {
-      const isLeftBye = match.left && !match.right;
       const isLastRound = roundIndex === rounds.length - 1;
+      const showLeftSlot = roundIndex > 0 || match.left; 
+      const showRightSlot = roundIndex > 0 || match.right;
+      const isBye = (!showLeftSlot || !showRightSlot) && roundIndex === 0;
+
+      // Estilos inline injetados apenas onde é necessário uma linha reta
+      const lineOffsetStyle = match.offsetY !== 0 ? `top: calc(50% + ${match.offsetY}rem);` : '';
+      const boxOffsetStyle = match.offsetY !== 0 ? `transform: translateY(${match.offsetY}rem);` : '';
+
+      let drawVertical = false;
+      let verticalTop = 0;
+      let verticalHeight = 0;
+
+      if (!isLastRound && matchIndex % 2 === 0) {
+        const nextMatch = roundMatches[matchIndex + 1];
+        // Desenha conexão vertical apenas se NENHUM for caixa omitida (anula a curva pro vazio)
+        if (!match.isDummy && nextMatch && !nextMatch.isDummy) {
+          drawVertical = true;
+          const H = 6 * Math.pow(2, roundIndex);
+          verticalTop = match.offsetY;
+          verticalHeight = H + nextMatch.offsetY - match.offsetY;
+        }
+      }
       
       html += `
-        <div class="round-match-wrapper">
-          ${roundIndex > 0 ? '<div class="bracket-line-in"></div>' : ''}
+        <div class="round-match-wrapper ${match.isDummy ? 'dummy-match-wrapper' : ''}">
+          ${roundIndex > 0 ? `<div class="bracket-line-in" style="${lineOffsetStyle}"></div>` : ''}
+          ${match.isPassThrough ? `<div class="bracket-line-through" style="${lineOffsetStyle}"></div>` : ''}
 
-          <div class="match-box">
-            <div class="athlete-slot">
+          <div class="match-box ${match.isDummy ? 'dummy-match-box' : ''} ${match.isPassThrough ? 'pass-through-box' : ''} ${isBye ? 'has-bye' : ''}" style="${boxOffsetStyle}">
+            <div class="athlete-slot ${!showLeftSlot && roundIndex === 0 ? 'empty-slot' : ''}">
               ${match.left ? `
                 <div class="entry-name">${match.left.athlete_name}</div>
                 <div class="entry-sub">${match.left.academy} • ${match.left.belt || 'N/A'}</div>
-              ` : '<div class="entry-name placeholder">&nbsp;</div>'}
+              ` : (roundIndex === 0 ? '' : '<div class="entry-name placeholder">&nbsp;</div>')}
             </div>
-            <div class="athlete-slot">
+            <div class="athlete-slot ${!showRightSlot && roundIndex === 0 ? 'empty-slot' : ''}">
               ${match.right ? `
                 <div class="entry-name">${match.right.athlete_name}</div>
                 <div class="entry-sub">${match.right.academy} • ${match.right.belt || 'N/A'}</div>
-              ` : isLeftBye ? '<div class="entry-name bye">Cabeça de Chave</div>' : '<div class="entry-name placeholder">&nbsp;</div>'}
+              ` : (roundIndex === 0 ? '' : '<div class="entry-name placeholder">&nbsp;</div>')}
             </div>
           </div>
 
           ${!isLastRound ? `
             <div class="bracket-connector-group">
-              <div class="bracket-line-out"></div>
-              ${matchIndex % 2 === 0 ? '<div class="bracket-line-vertical"></div>' : ''}
+              <div class="bracket-line-out" style="${lineOffsetStyle}"></div>
+              ${drawVertical ? `<div class="bracket-line-vertical" style="top: calc(50% + ${verticalTop}rem); height: ${verticalHeight}rem;"></div>` : ''}
             </div>
           ` : ''}
         </div>
@@ -320,54 +380,63 @@ bracketPrintBtn?.addEventListener('click', () => {
   if (!bracketBody) return;
   const printWindow = window.open('', '_blank');
   if (!printWindow) return;
+  
   const printCss = `
-    body { font-family: sans-serif; padding: 1rem; color: #000; background: #fff; font-size: 16px; }
-    .bracket-body {
-      display: block !important;
-      overflow: auto !important;
-      max-height: 80vh;
-      width: 100%;
-      box-sizing: border-box;
+    @page { size: landscape; margin: 10mm; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
+    
+    html, body { margin: 0; padding: 0; background: #fff; color: #000; font-family: sans-serif; font-size: 14px; width: auto; height: auto; }
+    h1 { font-size: 18px; margin: 0 0 15px 0; padding: 0; color: #000; }
+    
+    .bracket-content, .bracket-tree-wrapper { 
+      padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: none !important; 
+      width: max-content !important; height: auto !important; max-height: none !important; 
+      overflow: visible !important; background: transparent !important;
     }
-    .bracket-tree-wrapper {
-      font-size: 16px !important;
-      display: inline-block !important; 
-      min-width: 100%;
-      box-sizing: border-box;
-    }
-    .bracket-tree {
-      display: flex !important;
-      flex-direction: row !important;
-      align-items: flex-start !important; 
-    }
+
+    .bracket-tree { display: flex !important; flex-direction: row !important; align-items: flex-start !important; }
     .round-column { display: flex; flex-direction: column; justify-content: flex-start; width: 16rem; position: relative; }
-    .round-match-wrapper { display: flex; align-items: center; position: relative; box-sizing: border-box; width: 100%; }
-    .match-box { border: 1px solid #000 !important; border-radius: 4px; background: #fff !important; width: 13rem; box-sizing: border-box; z-index: 2; }
-    .athlete-slot { padding: 0.4rem 0.6rem; height: 2.4rem; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
-    .athlete-slot:first-child { border-bottom: 1px solid #000 !important; }
-    .entry-name { font-size: 0.8rem; font-weight: 700; color: #000 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .round-match-wrapper { display: flex; align-items: center; position: relative; width: 100%; }
+    
+    .match-box { border: none !important; background: transparent !important; width: 13rem; height: 4.8rem; z-index: 2; display: flex; flex-direction: column; justify-content: center; }
+    .athlete-slot { padding: 0.4rem 0.6rem; height: 2.4rem; display: flex; flex-direction: column; justify-content: center; border: 1px solid #000 !important; background: #fff !important; border-radius: 4px; }
+    .athlete-slot:first-child { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: none !important; }
+    .athlete-slot:last-child { border-top-left-radius: 0; border-top-right-radius: 0; }
+    .athlete-slot.empty-slot { display: none !important; }
+    .match-box.has-bye .athlete-slot { border: 1px solid #000 !important; border-radius: 4px !important; }
+    
+    .dummy-match-box, .pass-through-box { visibility: hidden !important; }
+    .dummy-match-wrapper .bracket-line-in, .dummy-match-wrapper .bracket-line-out { visibility: hidden !important; }
+    
+    .entry-name { font-size: 0.85rem; font-weight: 700; color: #000 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .entry-sub { font-size: 0.65rem; color: #000 !important; }
-    .entry-name.bye { font-style: italic; }
+    
+    .bracket-line-through { position: absolute; left: -1.5rem; top: 50%; width: 16rem; height: 1px; border-top: 1px solid #000 !important; z-index: 1; }
+    .bracket-line-in { position: absolute; left: -1.5rem; top: 50%; width: 1.5rem; height: 1px; border-top: 1px solid #000 !important; z-index: 1; }
+    .bracket-line-out { position: absolute; left: 13rem; top: 50%; width: 1.5rem; height: 1px; border-top: 1px solid #000 !important; z-index: 1; }
+    
+    .round-0 { --round-height: 6rem; }
+    .round-1 { --round-height: 12rem; }
+    .round-2 { --round-height: 24rem; }
+    .round-3 { --round-height: 48rem; }
+    .round-4 { --round-height: 96rem; }
     
     .round-0 .round-match-wrapper { height: 6rem; }
     .round-1 .round-match-wrapper { height: 12rem; }
     .round-2 .round-match-wrapper { height: 24rem; }
     .round-3 .round-match-wrapper { height: 48rem; }
-
-    .bracket-line-in { position: absolute; left: -1.5rem; top: 50%; width: 1.5rem; height: 1px; border-top: 1px solid #000 !important; z-index: 1; }
-    .bracket-line-out { position: absolute; left: 13rem; top: 50%; width: 1.5rem; height: 1px; border-top: 1px solid #000 !important; z-index: 1; }
-    .bracket-line-vertical { position: absolute; left: 14.5rem; border-right: 1px solid #000 !important; z-index: 1; }
+    .round-4 .round-match-wrapper { height: 96rem; }
     
-    .round-0 .bracket-line-vertical { top: 50%; height: 6rem; }
-    .round-1 .bracket-line-vertical { top: 50%; height: 12rem; }
-    .round-2 .bracket-line-vertical { top: 50%; height: 24rem; }
-    .round-3 .bracket-line-vertical { top: 50%; height: 48rem; }
-    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .bracket-line-vertical { position: absolute; left: 14.5rem; border-right: 1px solid #000 !important; z-index: 1; }
   `;
+  
   printWindow.document.write(`<!doctype html><html><head><title>${bracketTitle.textContent}</title><style>${printCss}</style></head><body><h1>${bracketTitle.textContent}</h1>${bracketBody.innerHTML}</body></html>`);
   printWindow.document.close();
-  printWindow.focus();
-  printWindow.print();
+  
+  setTimeout(() => {
+    printWindow.focus();
+    printWindow.print();
+  }, 250);
 });
 
 const handleBracketButtonClick = (button) => {
