@@ -428,9 +428,58 @@ bracketPrintBtn?.addEventListener('click', () => {
     .round-4 .round-match-wrapper { height: 96rem; }
     
     .bracket-line-vertical { position: absolute; left: 14.5rem; border-right: 1px solid #000 !important; z-index: 1; }
+
+    /* Bloco do Pódio Flutuante */
+    .podium-print {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      width: 250px;
+      background: transparent;
+      padding: 0;
+      z-index: 9999;
+    }
+    .podium-line {
+      display: flex;
+      align-items: flex-end;
+      border-bottom: 1px solid #000;
+      margin-bottom: 20px;
+      padding-bottom: 2px;
+      height: 24px;
+    }
+    .podium-line:last-child {
+      margin-bottom: 0;
+    }
+    .podium-line span {
+      font-weight: bold;
+      font-size: 14px;
+      margin-right: 8px;
+    }
   `;
   
-  printWindow.document.write(`<!doctype html><html><head><title>${bracketTitle.textContent}</title><style>${printCss}</style></head><body><h1>${bracketTitle.textContent}</h1>${bracketBody.innerHTML}</body></html>`);
+  const podiumHtml = `
+    <div class="podium-print">
+      <div class="podium-line"><span>1º:</span></div>
+      <div class="podium-line"><span>2º:</span></div>
+      <div class="podium-line"><span>3º:</span></div>
+    </div>
+  `;
+
+  printWindow.document.write(`
+    <!doctype html>
+    <html>
+      <head>
+        <title>${bracketTitle.textContent}</title>
+        <style>${printCss}</style>
+      </head>
+      <body>
+        <h1>${bracketTitle.textContent}</h1>
+        ${bracketBody.innerHTML}
+        ${podiumHtml}
+      </body>
+    </html>
+  `);
+  
   printWindow.document.close();
   
   setTimeout(() => {
